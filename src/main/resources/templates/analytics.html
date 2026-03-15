@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Analytics - TechMate</title>
+    <link rel="stylesheet" th:href="@{/css/analytics.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- SAME EXACT CONTENT -->
+<div id="analyticsData" th:attr="data-present=${analytics.totalPresent}, data-absent=${analytics.totalAbsent}, data-studentMap=${analytics.studentAttendanceMap}, data-monthlyTrend=${analytics.monthlyTrend}" style="display: none;"></div>
+
+<nav class="navbar">
+    <div class="logo">
+        <a th:href="@{'/subject/' + ${subjectId}}" style="text-decoration: none; color: white;">&larr; Back</a>
+    </div>
+    <div class="user-info">
+        <span>Analytics Dashboard</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Attendance Analytics</h1>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p>Total Classes</p>
+            <h3 th:text="${analytics.totalClasses}">0</h3>
+        </div>
+        <div class="stat-card">
+            <p>Overall Attendance</p>
+            <h3 th:text="${analytics.overallAttendancePercentage} + '%'">0%</h3>
+        </div>
+        <div class="stat-card">
+            <p>Students < 75%</p>
+            <h3 th:text="${analytics.studentsBelow75}" style="color: #ef4444;">0</h3>
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-box">
+            <h3 style="color:#333; margin-bottom:15px; text-align:center;">Present vs Absent (Overall)</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3 style="color:#333; margin-bottom:15px; text-align:center;">Student Attendance %</h3>
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/analytics.js}"></script>
+</body>
+</html>

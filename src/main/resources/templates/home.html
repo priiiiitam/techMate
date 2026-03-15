@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechMate</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- External CSS (Link kept as requested) -->
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <img th:src="@{/images/techMate.png}" alt="TechMate Logo">
+            <span class="logo-text">TechMate</span>
+        </div>
+
+        <a href="#" class="toggle-button">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </a>
+
+        <div class="navbar-links">
+            <ul>
+                <li><a href="#mission">Our Mission</a></li>
+                <li><a href="#advantages">Our Advantages</a></li>
+                <li><a href="#signin" class="btn-nav">Sign In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content fade-in">
+            <h1>Smart Attendance. <br><span class="highlight">Clear Insights.</span></h1>
+            <p>
+                TechMate is a Teacher–Student Attendance Analytics Platform designed
+                to help institutions monitor, analyze, and improve student attendance
+                through real-time dashboards and visual reports.
+            </p>
+            <div class="hero-buttons">
+                <a href="#mission" class="btn btn-primary">Learn More</a>
+                <a th:href="@{/oauth2/authorization/google}" class="btn btn-outline">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mission Section -->
+    <section id="mission" class="section-padding">
+        <div class="container">
+            <h2 class="section-title fade-in">What TechMate Does ?</h2>
+            <div class="grid-3">
+
+                <div class="card fade-in">
+                    <div class="card-icon">📋</div>
+                    <h3>Digital Attendance</h3>
+                    <p>Teachers mark attendance securely with subject-wise and date-wise tracking.</p>
+                </div>
+
+                <div class="card fade-in">
+                    <div class="card-icon">📊</div>
+                    <h3>Auto Calculation</h3>
+                    <p>Automatically calculates monthly and yearly attendance percentages (75% criteria).</p>
+                </div>
+
+                <div class="card fade-in">
+                    <div class="card-icon">📈</div>
+                    <h3>Analytics & Reports</h3>
+                    <p>Interactive graphs help visually analyze attendance trends and performance.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Advantages Section -->
+    <section id="advantages" class="section-padding bg-light">
+        <div class="container">
+            <h2 class="section-title fade-in">Platform Advantages</h2>
+            <div class="grid-3">
+
+                <div class="card fade-in">
+                    <h3>Subject Dashboards</h3>
+                    <p>Separate dashboards for each teacher and subject preventing data overlap.</p>
+                </div>
+
+                <div class="card fade-in">
+                    <h3>Secure OAuth</h3>
+                    <p>Secure login using Google OAuth ensuring authorized institutional access.</p>
+                </div>
+
+                <div class="card fade-in">
+                    <h3>Export Records</h3>
+                    <p>Generate and download attendance reports for official documentation.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Sign In Section -->
+    <section id="signin" class="cta-section">
+        <div class="cta-content fade-in">
+            <h2>Access Your Dashboard</h2>
+            <p>Sign in using your institutional Google account to manage and analyze student attendance efficiently.</p>
+            
+            <a th:href="@{/oauth2/authorization/google}" class="google-btn">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="google-icon" alt="Google Logo">
+                Sign in with Google
+            </a>
+        </div>
+    </section>
+
+    <!-- External JS -->
+    <script th:src="@{/js/home.js}"></script>
+</body>
+</html>

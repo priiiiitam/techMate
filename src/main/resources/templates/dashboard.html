@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>TechMate Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">TechMate</div>
+    <div class="user-info">
+        <span th:text="${teacher.name}">Teacher Name</span>
+        <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+</nav>
+
+<div class="container">
+    
+    <div class="dashboard-header">
+        <h1>My Subjects</h1>
+        <button id="addSubjectBtn" class="btn-primary">+ Add Subject</button>
+    </div>
+
+    <!-- Subjects Grid -->
+    <div class="subjects-grid">
+        <div class="subject-card" th:each="subject : ${subjects}">
+            <h2 th:text="${subject.subjectName}">Subject Name</h2>
+            <p>Total Students: <span th:text="${subject.totalStudents}">0</span></p>
+            <div class="card-actions" style="display: flex; gap: 10px;">
+                <a th:href="@{'/subject/' + ${subject.subjectId}}" class="btn-secondary" style="flex: 1;">Open</a>
+                <form th:action="@{'/subject/' + ${subject.subjectId} + '/delete'}" method="post" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this subject? All students and attendance data will be lost.');">
+                    <button type="submit" class="btn-danger w-100">Delete</button>
+                </form>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(subjects)}" class="empty-state">
+            <p>No subjects found. Create your first subject to get started.</p>
+        </div>
+    </div>
+
+    <!-- Create Subject Modal (Hidden by default) -->
+    <div id="subjectModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create New Subject</h2>
+            <form th:action="@{/create-subject}" method="post">
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input type="text" name="subjectName" required placeholder="e.g. Data Structures">
+                </div>
+                <div class="form-group">
+                    <label>Total Students</label>
+                    <input type="number" name="count" required placeholder="e.g. 60">
+                </div>
+                <button type="submit" class="btn-primary w-100">Create</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Simple modal logic
+    var modal = document.getElementById("subjectModal");
+    var btn = document.getElementById("addSubjectBtn");
+    var span = document.getElementsByClassName("close")[0];
+
+    btn.onclick = function() {
+      modal.style.display = "flex";
+    }
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+</script>
+
+</body>
+</html>

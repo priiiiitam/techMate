@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Take Attendance - TechMate</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; color: #333; }
+        th { background: #f8fafc; font-weight: 600; }
+        select { padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; }
+        .attendance-actions { margin-top: 20px; display: flex; justify-content: flex-end; }
+        .date-picker-form { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <a th:href="@{'/subject/' + ${subject.subjectId}}" style="text-decoration: none; color: white;">&larr; Back</a>
+    </div>
+    <div class="user-info">
+        <span>Take Attendance</span>
+    </div>
+</nav>
+
+<div class="container">
+    
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="table-container">
+        
+        <form th:action="@{'/subject/' + ${subject.subjectId} + '/attendance'}" method="get" class="date-picker-form">
+            <label id="date-label">Select Date:</label>
+            <input type="date" name="date" th:value="${selectedDate}" onchange="this.form.submit()" style="padding: 10px; border-radius: 6px; border: 1px solid #ccc;">
+        </form>
+
+        <form th:action="@{'/subject/' + ${subject.subjectId} + '/attendance/save'}" method="post">
+            <input type="hidden" name="dateStr" th:value="${selectedDate}">
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="student : ${students}">
+                        <td th:text="${student.rollNo}"></td>
+                        <td th:text="${student.name}"></td>
+                        <td>
+                            <!-- Look for existing attendance using thymeleaf utils (mocking the map approach) -->
+                            <th:block th:with="statusVal=${attendanceMap.get(student.studentId) ?: 'P'}">
+                                <select th:name="'status_' + ${student.studentId}">
+                                    <option value="P" th:selected="${statusVal == 'P'}">Present</option>
+                                    <option value="A" th:selected="${statusVal == 'A'}">Absent</option>
+                                    <option value="AL" th:selected="${statusVal == 'AL'}">Auth Leave</option>
+                                </select>
+                            </th:block>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="attendance-actions">
+                <button type="submit" class="btn-primary">Save Attendance</button>
+            </div>
+            
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>
