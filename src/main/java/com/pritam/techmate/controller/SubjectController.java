@@ -55,9 +55,14 @@ public class SubjectController {
     }
 
     @GetMapping("/subject/{id}")
-    public String subjectDashboard(@PathVariable("id") Long id, Model model) {
+    public String subjectDashboard(@PathVariable("id") Long id, @AuthenticationPrincipal OAuth2User principal, Model model) {
+        if (principal == null) return "redirect:/";
+
+        String email = principal.getAttribute("email");
+        Teacher teacher = teacherService.findByEmail(email).orElse(null);
         Subject subject = subjectService.getSubjectById(id).orElse(null);
-        if (subject == null) {
+        
+        if (subject == null || teacher == null || !subject.getTeacher().getTeacherId().equals(teacher.getTeacherId())) {
             return "redirect:/dashboard";
         }
         

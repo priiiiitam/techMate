@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findBySubjectSubjectId(Long subjectId);
+    List<Student> findBySubjectSubjectIdOrderByRollNoAsc(Long subjectId);
     Optional<Student> findBySubjectSubjectIdAndRollNo(Long subjectId, Integer rollNo);
     List<Student> findBySubjectSubjectIdAndNameContainingIgnoreCase(Long subjectId, String name);
+    long countBySubjectSubjectId(Long subjectId);
 }

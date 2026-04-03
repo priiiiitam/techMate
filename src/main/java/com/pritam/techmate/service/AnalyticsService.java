@@ -52,7 +52,10 @@ public class AnalyticsService {
         double overallAttendancePercentage = 0;
         if (totalClasses > 0 && totalStudents > 0) {
            int totalPossibleAttendances = totalClasses * totalStudents;
-           overallAttendancePercentage = (double) totalPresent / (totalPossibleAttendances - totalAuthorizedLeave) * 100;
+           int divisor = totalPossibleAttendances - totalAuthorizedLeave;
+           if (divisor > 0) {
+               overallAttendancePercentage = (double) totalPresent / divisor * 100;
+           }
         }
 
         int studentsBelow75 = 0;

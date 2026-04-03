@@ -4,7 +4,10 @@ import com.pritam.techmate.entity.Student;
 import com.pritam.techmate.entity.Subject;
 import com.pritam.techmate.service.StudentService;
 import com.pritam.techmate.service.SubjectService;
+import com.pritam.techmate.service.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,31 +28,44 @@ public class StudentController {
     @Autowired
     private SubjectService subjectService;
 
+    @Autowired
+    private TeacherService teacherService;
+
+    private boolean isOwner(OAuth2User principal, Subject subject) {
+        if (principal == null || subject == null) return false;
+        String email = principal.getAttribute("email");
+        com.pritam.techmate.entity.Teacher teacher = teacherService.findByEmail(email).orElse(null);
+        return teacher != null && subject.getTeacher().getTeacherId().equals(teacher.getTeacherId());
+    }
+
     @PostMapping("/subject/{subjectId}/add-student")
     public String addStudentManual(@PathVariable("subjectId") Long subjectId,
                                    @RequestParam("name") String name,
                                    @RequestParam("rollNo") Integer rollNo,
+                                   @AuthenticationPrincipal OAuth2User principal,
                                    RedirectAttributes redirectAttributes) {
 
         Subject subject = subjectService.getSubjectById(subjectId).orElse(null);
-        if (subject != null) {
-            boolean added = studentService.addStudentManual(name, rollNo, subject);
-            if (added) {
-                redirectAttributes.addFlashAttribute("success", "Student added successfully.");
-            } else {
-                redirectAttributes.addFlashAttribute("error", "Error: A student with Roll No " + rollNo + " already exists in this subject.");
-            }
+        if (!isOwner(principal, subject)) return "redirect:/dashboard";
+
+        boolean added = studentService.addStudentManual(name, rollNo, subject);
+        if (added) {
+            redirectAttributes.addFlashAttribute("success", "Student added successfully.");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Error: A student with Roll No " + rollNo + " already exists in this subject.");
         }
+        
         return "redirect:/subject/" + subjectId;
     }
 
     @GetMapping("/subject/{subjectId}/search-student")
     public String searchStudent(@PathVariable("subjectId") Long subjectId,
                                 @RequestParam("query") String query,
+                                @AuthenticationPrincipal OAuth2User principal,
                                 Model model) {
         
         Subject subject = subjectService.getSubjectById(subjectId).orElse(null);
-        if (subject == null) return "redirect:/dashboard";
+        if (!isOwner(principal, subject)) return "redirect:/dashboard";
 
         List<Student> results = studentService.searchStudents(subjectId, query);
         
@@ -75,8 +91,12 @@ public class StudentController {
     @PostMapping("/subject/{subjectId}/delete-student/{studentId}")
     public String deleteStudent(@PathVariable("subjectId") Long subjectId,
                                 @PathVariable("studentId") Long studentId,
+                                @AuthenticationPrincipal OAuth2User principal,
                                 RedirectAttributes redirectAttributes) {
         
+        Subject subject = subjectService.getSubjectById(subjectId).orElse(null);
+        if (!isOwner(principal, subject)) return "redirect:/dashboard";
+
         studentService.deleteStudent(studentId);
         redirectAttributes.addFlashAttribute("success", "Student deleted successfully.");
         return "redirect:/subject/" + subjectId;
@@ -88,10 +108,14 @@ public class StudentController {
                                  @RequestParam(value = "date", required = false) String dateStr,
                                  @RequestParam(value = "month", required = false) String monthStr,
                                  @RequestParam("format") String format,
+                                 @AuthenticationPrincipal OAuth2User principal,
                                  jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
 
         Subject subject = subjectService.getSubjectById(subjectId).orElse(null);
-        if (subject == null) return;
+        if (!isOwner(principal, subject)) {
+            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+            return;
+        }
 
         java.time.LocalDate start, end;
 
@@ -110,26 +134,29 @@ public class StudentController {
         String subjectName = subject.getSubjectName().replaceAll("\\s+", "_");
         String periodLabel = start.equals(end) ? start.toString() : start + "_to_" + end;
 
-        if ("csv".equals(format)) {
+        if ("csv".equalsIgnoreCase(format)) {
             response.setContentType("text/csv");
             response.setHeader("Content-Disposition", "attachment; filename=\"" + subjectName + "_" + periodLabel + ".csv\"");
             response.getWriter().write(studentService.generateExportCsv(subjectId, start, end));
-        } else {
+        } else if ("excel".equalsIgnoreCase(format)) {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment; filename=\"" + subjectName + "_" + periodLabel + ".xlsx\"");
             try (org.apache.poi.ss.usermodel.Workbook workbook = studentService.generateExportWorkbook(subjectId, start, end)) {
                 workbook.write(response.getOutputStream());
             }
+        } else {
+            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST, "Invalid format");
         }
     }
 
     @PostMapping("/subject/{subjectId}/import-students")
     public String importStudents(@PathVariable("subjectId") Long subjectId,
                                  @RequestParam("file") MultipartFile file,
+                                 @AuthenticationPrincipal OAuth2User principal,
                                  RedirectAttributes redirectAttributes) {
                                      
         Subject subject = subjectService.getSubjectById(subjectId).orElse(null);
-        if (subject == null) {
+        if (!isOwner(principal, subject)) {
             return "redirect:/dashboard";
         }
 

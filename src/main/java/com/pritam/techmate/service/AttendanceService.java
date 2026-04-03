@@ -53,6 +53,15 @@ public class AttendanceService {
         return attendanceRepository.findBySubjectSubjectId(subjectId);
     }
 
+    private String normalizeStatus(String rawStatus) {
+        if (rawStatus == null) return null;
+        String s = rawStatus.trim().toUpperCase();
+        if (s.equals("P") || s.equals("PRESENT")) return "P";
+        if (s.equals("A") || s.equals("ABSENT")) return "A";
+        if (s.equals("AL") || s.equals("AUTHORIZED LEAVE") || s.equals("LEAVE")) return "AL";
+        return null;
+    }
+
     public void importAttendanceFromCsv(MultipartFile file, Subject subject) throws Exception {
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
             List<String[]> rows = reader.readAll();
@@ -61,10 +70,13 @@ public class AttendanceService {
                     try {
                         Integer rollNo = Integer.parseInt(row[0].trim());
                         final LocalDate finalDate = LocalDate.parse(row[1].trim());
-                        String status = row[2].trim().toUpperCase();
+                        String rawStatus = row[2];
+                        String status = normalizeStatus(rawStatus);
 
-                        Optional<Student> studentOpt = studentRepository.findBySubjectSubjectIdAndRollNo(subject.getSubjectId(), rollNo);
-                        studentOpt.ifPresent(student -> markAttendance(student, subject, finalDate, status));
+                        if (status != null) {
+                            Optional<Student> studentOpt = studentRepository.findBySubjectSubjectIdAndRollNo(subject.getSubjectId(), rollNo);
+                            studentOpt.ifPresent(student -> markAttendance(student, subject, finalDate, status));
+                        }
                     } catch (Exception e) {
                         // Skip invalid rows
                     }
@@ -90,10 +102,13 @@ public class AttendanceService {
                         }
 
                         final LocalDate finalDate = date;
-                        String status = row.getCell(2).getStringCellValue().trim().toUpperCase();
+                        String rawStatus = row.getCell(2).getStringCellValue();
+                        String status = normalizeStatus(rawStatus);
 
-                        Optional<Student> studentOpt = studentRepository.findBySubjectSubjectIdAndRollNo(subject.getSubjectId(), rollNo);
-                        studentOpt.ifPresent(student -> markAttendance(student, subject, finalDate, status));
+                        if (status != null) {
+                            Optional<Student> studentOpt = studentRepository.findBySubjectSubjectIdAndRollNo(subject.getSubjectId(), rollNo);
+                            studentOpt.ifPresent(student -> markAttendance(student, subject, finalDate, status));
+                        }
                     } catch (Exception e) {
                         // Skip invalid rows
                     }

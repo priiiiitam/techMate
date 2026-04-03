@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.pritam.techmate.entity.Student;
 import com.pritam.techmate.entity.Subject;
 import com.pritam.techmate.repository.StudentRepository;
+import com.pritam.techmate.repository.SubjectRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,11 @@ public class StudentService {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Autowired
+    private SubjectRepository subjectRepository;
+
     public List<Student> getStudentsBySubject(Long subjectId) {
-        return studentRepository.findBySubjectSubjectId(subjectId);
+        return studentRepository.findBySubjectSubjectIdOrderByRollNoAsc(subjectId);
     }
 
     public boolean addStudentManual(String name, Integer rollNo, Subject subject) {
@@ -34,6 +38,11 @@ public class StudentService {
                     .subject(subject)
                     .build();
             studentRepository.save(student);
+            
+            long exactCount = studentRepository.countBySubjectSubjectId(subject.getSubjectId());
+            subject.setTotalStudents((int) exactCount);
+            subjectRepository.save(subject);
+            
             return true;
         }
         return false;
@@ -123,7 +132,19 @@ public class StudentService {
     }
 
     public void deleteStudent(Long studentId) {
-        studentRepository.deleteById(studentId);
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Subject subject = student.getSubject();
+            
+            studentRepository.deleteById(studentId);
+            
+            if (subject != null) {
+                long exactCount = studentRepository.countBySubjectSubjectId(subject.getSubjectId());
+                subject.setTotalStudents((int) exactCount);
+                subjectRepository.save(subject);
+            }
+        }
     }
 
     public List<Student> searchStudents(Long subjectId, String query) {
